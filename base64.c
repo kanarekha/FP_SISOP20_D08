@@ -56,6 +56,42 @@ int encode(unsigned char in[], unsigned char out[], int panjang, int newline_fla
    return(index2);
 }
 
+int decode(unsigned char in[], unsigned char out[], int panjang, int newline_flag, int separator)
+{
+   int index,index2,blks,left_over;
+
+   if (in[panjang-1] == '=')
+      panjang--;
+   if (in[panjang-1] == '=')
+      panjang--;
+
+   blks = (panjang / 4) * 4;
+   for (index=0,index2=0; index2 < blks; index += 3,index2 += 4) {
+      out[index] = (revchar(in[index2]) << 2) + ((revchar(in[index2+1]) & 0x30) >> 4);
+      out[index+1] = (revchar(in[index2+1]) << 4) + (revchar(in[index2+2]) >> 2);
+      out[index+2] = (revchar(in[index2+2]) << 6) + revchar(in[index2+3]);
+
+      if (!(index2 % (separator+1)) && newline_flag) {
+         out[index2+4] = '\n';
+         index2++;
+      }
+   }
+   left_over = panjang % 4;
+   if (left_over == 2) {
+      out[index] = (revchar(in[index2]) << 2) + ((revchar(in[index2+1]) & 0x30) >> 4);
+      out[index+1] = (revchar(in[index2+1]) << 4);
+      index += 2;
+   }
+   else if (left_over == 3) {
+      out[index] = (revchar(in[index2]) << 2) + ((revchar(in[index2+1]) & 0x30) >> 4);
+      out[index+1] = (revchar(in[index2+1]) << 4) + (revchar(in[index2+2]) >> 2);
+      out[index+2] = revchar(in[index2+2]) << 6;
+      index += 3;
+   }
+   out[index] = '\0';
+   return(index);
+}
+
 
 int main(int argc, char *argv[]){
 
@@ -73,5 +109,21 @@ int main(int argc, char *argv[]){
       close(inputfile);
       exit();
    }
+   else if(argc==3){
+      if((strcmp(argv[1],"-d"))==0){
+         int inputfile;
+         if((inputfile = open(argv[2],O_RDONLY)) < 0){
+            close(inputfile);
+            exit();
+         }
+         int buff_len;
+         unsigned char output[1024],data[1024];
+         while ((buff_len = read(inputfile,data,sizeof(data))) > 0);
+         decode(data, output, strlen((char*)data),0,76);
+         printf(1,"%s\n",output);
+         close(inputfile);
+         exit();
+      }
+}
 }
 
