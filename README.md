@@ -4,3 +4,5 @@
 05111840000001 KANA REKHA
 
 05111740000169	MUHAMMAD FARHAN HAYKAL
+
+command : clear , stat . join . base64 , find
